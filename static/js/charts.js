@@ -80,7 +80,7 @@ const Charts = {
       type: 'pie',
       hole: 0.62,
       textinfo: 'percent',
-      hoverinfo: 'label+value+percent',
+      hovertemplate: '<b>%{label}</b><br>Rs. %{value:,.2f} (%{percent})<extra></extra>',
       marker: {
         colors: this.colors.pieColors,
         line: { color: sliceBorder, width: 2.5 }
@@ -130,6 +130,7 @@ const Charts = {
       y: timelineData.income,
       name: 'Income',
       type: 'bar',
+      hovertemplate: '%{x}<br>Income: Rs. %{y:,.2f}<extra></extra>',
       marker: {
         color: this.colors.income,
         line: { color: 'rgba(5, 150, 105, 0.3)', width: 1 }
@@ -141,6 +142,7 @@ const Charts = {
       y: timelineData.expenses,
       name: 'Expenses',
       type: 'bar',
+      hovertemplate: '%{x}<br>Expenses: Rs. %{y:,.2f}<extra></extra>',
       marker: {
         color: this.colors.expense,
         line: { color: 'rgba(225, 29, 72, 0.3)', width: 1 }
@@ -160,7 +162,7 @@ const Charts = {
         tickfont: { size: 10, color: textColor },
         gridcolor: gridColor,
         zerolinecolor: gridColor,
-        tickprefix: '$'
+        tickprefix: 'Rs. '
       },
       legend: {
         orientation: 'h',
@@ -193,6 +195,7 @@ const Charts = {
       y: trendData.income,
       name: 'Total Income',
       type: 'bar',
+      hovertemplate: '%{x}<br>Income: Rs. %{y:,.2f}<extra></extra>',
       marker: { color: this.colors.income }
     };
 
@@ -201,6 +204,7 @@ const Charts = {
       y: trendData.expenses,
       name: 'Total Expenses',
       type: 'bar',
+      hovertemplate: '%{x}<br>Expenses: Rs. %{y:,.2f}<extra></extra>',
       marker: { color: this.colors.expense }
     };
 
@@ -210,6 +214,7 @@ const Charts = {
       name: 'Monthly Budget',
       type: 'scatter',
       mode: 'lines+markers',
+      hovertemplate: '%{x}<br>Budget: Rs. %{y:,.2f}<extra></extra>',
       line: { color: this.colors.budget, width: 3, dash: 'dot' },
       marker: { size: 7, color: this.colors.budget }
     };
@@ -224,7 +229,7 @@ const Charts = {
       yaxis: {
         tickfont: { size: 10, color: textColor },
         gridcolor: gridColor,
-        tickprefix: '$'
+        tickprefix: 'Rs. '
       },
       legend: {
         orientation: 'h',
