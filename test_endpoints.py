@@ -21,7 +21,7 @@ def run_tests():
     req = urllib.request.Request(f"{base}/api/transactions", data=payload, headers={"Content-Type": "application/json"}, method="POST")
     new_tx = json.loads(urllib.request.urlopen(req).read().decode("utf-8"))
     tx_id = new_tx["id"]
-    print(f"[2/8] POST /api/transactions (CREATE) -> Created ID {tx_id}: {new_tx['title']} (${new_tx['amount']})")
+    print(f"[2/8] POST /api/transactions (CREATE) -> Created ID {tx_id}: {new_tx['title']} (Rs. {new_tx['amount']})")
 
     # 3. Test GET /api/transactions/{id} (READ)
     single = json.loads(urllib.request.urlopen(f"{base}/api/transactions/{tx_id}").read().decode("utf-8"))
@@ -31,7 +31,7 @@ def run_tests():
     update_payload = json.dumps({"amount": 35.50, "notes": "Updated note during test"}).encode("utf-8")
     req_update = urllib.request.Request(f"{base}/api/transactions/{tx_id}", data=update_payload, headers={"Content-Type": "application/json"}, method="PUT")
     updated = json.loads(urllib.request.urlopen(req_update).read().decode("utf-8"))
-    print(f"[4/8] PUT /api/transactions/{tx_id} (UPDATE) -> Updated amount to ${updated['amount']}")
+    print(f"[4/8] PUT /api/transactions/{tx_id} (UPDATE) -> Updated amount to Rs. {updated['amount']}")
 
     # 5. Test DELETE /api/transactions/{id} (DELETE)
     req_del = urllib.request.Request(f"{base}/api/transactions/{tx_id}", method="DELETE")

@@ -593,8 +593,8 @@ const App = {
 
   // Utilities
   formatCurrency: function(num) {
-    if (num === null || num === undefined) return '$0.00';
-    return '$' + Number(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    if (num === null || num === undefined) return 'Rs. 0.00';
+    return 'Rs. ' + Number(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   },
 
   formatMonthName: function(monthYear) {
