@@ -52,6 +52,30 @@
           </svg>
         </button>
 
+        <div class="notification-wrapper" id="notification-wrapper">
+          <button id="btn-notifications" class="theme-toggle-btn notification-btn" type="button" aria-label="Notifications" aria-expanded="false" onclick="App.toggleNotifications()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+              <path d="M10 21h4"></path>
+            </svg>
+            <span id="notification-count" class="notification-count" hidden>0</span>
+          </button>
+          <div id="notification-panel" class="notification-panel" hidden>
+            <div class="notification-panel-header">
+              <strong>Recent alerts</strong>
+              <button class="text-button" type="button" onclick="App.markAllAlertsRead()">Mark all read</button>
+            </div>
+            <div id="notification-list" class="notification-list"></div>
+          </div>
+        </div>
+
+        <button id="btn-settings" class="theme-toggle-btn" type="button" title="Settings" aria-label="Settings" onclick="App.openSettings()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.7 2.94-.08-.02a1.7 1.7 0 0 0-1.78.59l-.05.07h-3.4l-.03-.08a1.7 1.7 0 0 0-1.47-1.04l-.09-.01-1.7-2.94.06-.06A1.7 1.7 0 0 0 9.9 14.6l-.08-.04v-3.4l.08-.03a1.7 1.7 0 0 0 1.04-1.47l.01-.09 2.94-1.7.06.06a1.7 1.7 0 0 0 1.88.34l.06-.06 2.94 1.7-.02.08a1.7 1.7 0 0 0 .59 1.78l.07.05v3.4l-.08.03a1.7 1.7 0 0 0-1.04 1.47z" transform="translate(-2 -2)"></path>
+          </svg>
+        </button>
+
         <!-- Month Selector -->
         <div class="month-picker-wrapper" title="Select active financial period">
           <input type="month" id="selected-month" aria-label="Select Financial Month">
@@ -95,6 +119,14 @@
             </a>
           </div>
         </div>
+        <button id="btn-print-report" class="btn btn-secondary" type="button" onclick="App.printReport()">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+            <rect x="6" y="14" width="12" height="8"></rect>
+          </svg>
+          Print
+        </button>
       </div>
     </header>
 
@@ -180,6 +212,19 @@
       <!-- Dynamic Budget Alert Banner -->
       <section id="budget-alert-banner" class="budget-alert-banner budget-alert-safe" aria-live="polite">
         <!-- Rendered via JS -->
+      </section>
+
+      <section class="weekly-summary-card" aria-labelledby="weekly-summary-title">
+        <div class="weekly-summary-heading">
+          <div>
+            <h2 id="weekly-summary-title">This Week</h2>
+            <p id="weekly-summary-range" class="weekly-summary-range"></p>
+          </div>
+          <span class="weekly-summary-icon" aria-hidden="true">7d</span>
+        </div>
+        <div id="weekly-summary-content" class="weekly-summary-content" aria-live="polite">
+          <p class="weekly-empty-state">Loading your weekly summary…</p>
+        </div>
       </section>
 
       <!-- Visual Charts Analytics Section -->
@@ -303,6 +348,9 @@
 
   </div>
 
+  <!-- Feature report is only shown in the browser print stylesheet. -->
+  <section id="print-report" class="print-report" aria-label="Monthly financial report"></section>
+
   <!-- ==================== MODALS ==================== -->
 
   <!-- Add/Edit Transaction Modal -->
@@ -331,6 +379,7 @@
           <div class="form-group">
             <label for="tx-title" class="form-label">Title / Payee *</label>
             <input type="text" id="tx-title" class="form-control" placeholder="e.g. Grocery Store, Client Payment" required>
+            <small id="category-suggestion-hint" class="category-suggestion-hint" aria-live="polite" hidden></small>
           </div>
 
           <!-- Amount Input -->
@@ -415,6 +464,40 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="App.closeModal('delete-modal')">Cancel</button>
         <button type="button" class="btn btn-danger" onclick="App.confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="modal-overlay" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+    <div class="modal-container settings-modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title" id="settings-modal-title">Settings</h2>
+        <button class="modal-close-btn" onclick="App.closeModal('settings-modal')" aria-label="Close Settings">&times;</button>
+      </div>
+      <div class="modal-body settings-modal-body">
+        <section class="settings-section">
+          <h3>Unusual spending alerts</h3>
+          <label class="settings-toggle-row" for="unusual-alerts-toggle">
+            <span>
+              <strong>Enable alerts</strong>
+              <small>Notify me about expenses that are unusually high for a category.</small>
+            </span>
+            <input type="checkbox" id="unusual-alerts-toggle">
+          </label>
+        </section>
+        <section class="settings-section">
+          <div class="rules-heading">
+            <div>
+              <h3>Category rules</h3>
+              <p>Learned from categories you select in the transaction form.</p>
+            </div>
+          </div>
+          <div id="category-rules-list" class="category-rules-list"></div>
+        </section>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="App.closeModal('settings-modal')">Done</button>
       </div>
     </div>
   </div>

@@ -37,6 +37,12 @@ To develop a user-friendly web application that helps users manage income and ex
   - **6-Month Trend Overview**: Comparative historical bar and budget benchmark chart.
 - 💾 **Data Export**: One-click export to **CSV** and **JSON** formats.
 - 🔍 **Live Search & Sorting**: Real-time text search and sorting by date or amount.
+- 🧠 **Smart Categorization**: Suggests categories from transaction descriptions, learns manual category choices, and lets you manage learned rules.
+- 🔔 **Unusual Spending Alerts**: Detects unusually large category expenses, stores recent alerts in the browser, and allows alerts to be disabled in Settings.
+- 📅 **Weekly Spending Summary**: Compares this week with last week and highlights category changes, top category, highest expense, and daily average.
+- 🖨️ **Print-Friendly Monthly Report**: Generates an A4-ready report with monthly totals, category breakdown, and the full transaction list.
+
+New category rules, unusual-spending alerts, and alert preferences are stored in the browser's `localStorage`. Weekly summaries and print reports are calculated from the transaction history in the configured database.
 
 ---
 
