@@ -41,7 +41,7 @@ const Charts = {
       paper_bgcolor: 'rgba(0,0,0,0)',
       plot_bgcolor: 'rgba(0,0,0,0)',
       font: { color: textColor, family: 'Inter, -apple-system, sans-serif', size: 11 },
-      margin: { l: 36, r: 16, t: 24, b: 36 },
+      margin: { l: 80, r: 20, t: 24, b: 36 },
       autosize: true,
       hoverlabel: {
         bgcolor: hoverBg,
@@ -159,12 +159,15 @@ const Charts = {
       barmode: 'group',
       bargap: 0.25,
       bargroupgap: 0.1,
+      margin: { l: 85, r: 20, t: 28, b: 36 },
       xaxis: {
+        automargin: true,
         tickfont: { size: 10, color: textColor },
         gridcolor: gridColor,
         zerolinecolor: gridColor
       },
       yaxis: {
+        automargin: true,
         tickfont: { size: 10, color: textColor },
         gridcolor: gridColor,
         zerolinecolor: gridColor,
@@ -229,11 +232,14 @@ const Charts = {
     const layout = this.getThemeLayout('', {
       barmode: 'group',
       bargap: 0.3,
+      margin: { l: 85, r: 20, t: 28, b: 36 },
       xaxis: {
+        automargin: true,
         tickfont: { size: 10, color: textColor },
         gridcolor: gridColor
       },
       yaxis: {
+        automargin: true,
         tickfont: { size: 10, color: textColor },
         gridcolor: gridColor,
         tickprefix: `${currency} `
