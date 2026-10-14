@@ -261,6 +261,32 @@ body {
   line-height: 1.2;
 }
 
+.db-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+  font-size: 0.66rem;
+  font-weight: 600;
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  cursor: help;
+  transition: var(--transition-fast);
+}
+
+.db-badge:hover {
+  border-color: var(--border-hover);
+}
+
+.db-badge .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
 /* Header Actions */
 .header-actions {
   display: flex;

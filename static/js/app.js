@@ -12,6 +12,7 @@ const App = {
     searchQuery: '',
     sortBy: 'date',
     order: 'desc',
+    dateFilter: '',
     currency: 'LKR',
     categories: { income: [], expense: [] },
     editingTransactionId: null,
@@ -449,6 +450,9 @@ const App = {
       if (this.state.searchQuery.trim()) {
         params.append('search', this.state.searchQuery.trim());
       }
+      if (this.state.dateFilter) {
+        params.append('date', this.state.dateFilter);
+      }
 
       const res = await fetch(`/api/transactions?${params.toString()}`);
       if (!res.ok) throw new Error('Failed to fetch transactions');
@@ -637,6 +641,15 @@ const App = {
     } finally {
       this.state.deletingTransactionId = null;
     }
+  },
+
+  clearDateFilter: function() {
+    const dateInput = document.getElementById('filter-date');
+    if (dateInput) dateInput.value = '';
+    this.state.dateFilter = '';
+    const clearBtn = document.getElementById('btn-clear-date');
+    if (clearBtn) clearBtn.style.display = 'none';
+    this.loadTransactions();
   },
 
   openBudgetModal: function() {
@@ -1051,6 +1064,17 @@ const App = {
           this.state.searchQuery = e.target.value;
           this.loadTransactions();
         }, 250);
+      });
+    }
+
+    // Exact date filter picker
+    const dateFilterInput = document.getElementById('filter-date');
+    if (dateFilterInput) {
+      dateFilterInput.addEventListener('change', (e) => {
+        this.state.dateFilter = e.target.value;
+        const clearBtn = document.getElementById('btn-clear-date');
+        if (clearBtn) clearBtn.style.display = e.target.value ? 'inline-block' : 'none';
+        this.loadTransactions();
       });
     }
 

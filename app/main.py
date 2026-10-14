@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
-from app.database import engine, Base, get_db, get_db_status
+from app.database import engine, Base, SessionLocal, get_db, get_db_status
 from app.models import Transaction, Budget
 from app.schemas import (
     TransactionCreate,
@@ -27,7 +27,7 @@ from app.seed_data import seed_initial_data
 Base.metadata.create_all(bind=engine)
 
 # Seed sample data on startup if database is empty
-with next(get_db()) as db_session:
+with SessionLocal() as db_session:
     seed_initial_data(db_session)
 
 app = FastAPI(
