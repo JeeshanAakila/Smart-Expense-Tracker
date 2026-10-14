@@ -63,3 +63,21 @@ class FinancialSummary(BaseModel):
     expense_categories: List[CategorySummary]
     income_categories: List[CategorySummary]
     transaction_count: int
+
+class NotificationResponse(BaseModel):
+    id: int
+    title: str
+    message: str
+    type: str
+    category: Optional[str] = None
+    threshold: Optional[str] = None
+    month_year: str
+    is_read: bool
+    created_at: Optional[dt.datetime] = None
+
+    class Config:
+        from_attributes = True
+
+class NotificationListResponse(BaseModel):
+    unread_count: int
+    notifications: List[NotificationResponse]

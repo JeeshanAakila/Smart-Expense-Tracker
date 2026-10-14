@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, Date, DateTime, Text
+from sqlalchemy import Column, Integer, String, Float, Date, DateTime, Text, Boolean
 from datetime import datetime
 from app.database import Base
 
@@ -30,3 +30,17 @@ class AppSetting(Base):
 
     key = Column(String(100), primary_key=True)
     value = Column(Text, nullable=False)
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    title = Column(String(150), nullable=False)
+    message = Column(Text, nullable=False)
+    type = Column(String(20), nullable=False, default="warning") # 'warning', 'exceeded', 'info'
+    category = Column(String(50), nullable=True) # e.g. 'Food', 'Transport', 'Overall'
+    threshold = Column(String(20), nullable=True) # '80%', 'exceeded'
+    month_year = Column(String(7), nullable=False, index=True) # Format: YYYY-MM
+    is_read = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+

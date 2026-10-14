@@ -35,7 +35,6 @@ const App = {
     this.initTheme();
     this.loadLocalFeatures();
     this.setupDateSelectors();
-    await this.fetchDbStatus();
     await this.fetchCategories();
     this.bindEvents();
     await this.refreshAll();
@@ -116,24 +115,37 @@ const App = {
     if (budgetLabel) budgetLabel.textContent = `Monthly Spending Limit (${this.state.currency}) *`;
   },
 
+  onCurrencyChange: function(newCurrency) {
+    const validCurrencies = ['LKR', 'USD', 'EUR', 'GBP', 'INR', 'AUD', 'CAD'];
+    this.state.currency = validCurrencies.includes(newCurrency) ? newCurrency : 'LKR';
+    this.persistLocalValue('smart-expense-currency', this.state.currency);
+    try {
+      localStorage.setItem('smart-expense-currency', this.state.currency);
+    } catch (e) {}
+
+    // 1. Update modal and form labels
+    this.renderCurrencyLabels();
+
+    // 2. Update KPI summary cards & banner alert (above parts)
+    if (this.state.summary) {
+      this.renderKPIs(this.state.summary);
+      this.renderBudgetAlert(this.state.summary);
+    }
+
+    // 3. Update Visual Charts
+    if (Charts.lastChartData) {
+      Charts.renderAll(Charts.lastChartData);
+    }
+
+    // 4. Update Transactions Table (below part amounts)
+    if (this.state.transactions) {
+      this.renderTransactionsTable(this.state.transactions);
+    }
+  },
+
   // Database Connection Status
   fetchDbStatus: async function() {
-    try {
-      const res = await fetch('/api/db-status');
-      const data = await res.json();
-      const badge = document.getElementById('db-status-badge');
-      if (badge) {
-        if (data.is_mysql) {
-          badge.innerHTML = `<span class="dot" style="background:#10b981;box-shadow:0 0 8px #10b981;"></span> MySQL Connected`;
-          badge.title = "Connected to MySQL production database.";
-        } else {
-          badge.innerHTML = `<span class="dot" style="background:#38bdf8;box-shadow:0 0 8px #38bdf8;"></span> SQLite Active (Fallback)`;
-          badge.title = "Running on SQLite storage. Switch to MySQL in .env when ready!";
-        }
-      }
-    } catch (err) {
-      console.warn("Could not check DB status:", err);
-    }
+    // DB status badge removed
   },
 
   // Fetch Category Definitions
@@ -797,9 +809,10 @@ const App = {
       : [];
     this.state.unusualAlerts = Array.isArray(alerts) ? alerts.slice(0, 30) : [];
     this.state.unusualAlertsEnabled = !settings || settings.unusualAlertsEnabled !== false;
-    const savedCurrency = localStorage.getItem('smart-expense-currency') || 'LKR';
+    const rawCurrency = readStored('smart-expense-currency', localStorage.getItem('smart-expense-currency') || 'LKR');
+    const cleanCurrency = typeof rawCurrency === 'string' ? rawCurrency.replace(/^["']|["']$/g, '').trim() : 'LKR';
     const validCurrencies = ['LKR', 'USD', 'EUR', 'GBP', 'INR', 'AUD', 'CAD'];
-    this.state.currency = validCurrencies.includes(savedCurrency) ? savedCurrency : 'LKR';
+    this.state.currency = validCurrencies.includes(cleanCurrency) ? cleanCurrency : 'LKR';
     const currencySelect = document.getElementById('currency-select');
     if (currencySelect) currencySelect.value = this.state.currency;
     this.renderCurrencyLabels();
@@ -1128,13 +1141,8 @@ const App = {
     const currencySelect = document.getElementById('currency-select');
     if (currencySelect) {
       currencySelect.addEventListener('change', () => {
-        this.state.currency = currencySelect.value;
-        if (this.persistLocalValue('smart-expense-currency', this.state.currency)) {
-          if (this.state.summary) this.renderKPIs(this.state.summary);
-          this.renderCurrencyLabels();
-          if (Charts.lastChartData) Charts.renderAll(Charts.lastChartData);
-          this.showToast(`Currency display changed to ${this.state.currency}. Values are not converted.`, 'info');
-        }
+        this.onCurrencyChange(currencySelect.value);
+        this.showToast(`Currency display changed to ${this.state.currency}. Values are not converted.`, 'info');
       });
     }
 
