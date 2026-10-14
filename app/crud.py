@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, asc, cast, String, or_
 from datetime import datetime, date
 from typing import Optional, List, Dict, Any
-from app.models import Transaction, Budget
+from app.models import Transaction, Budget, Notification
 from app.schemas import TransactionCreate, TransactionUpdate, BudgetCreate
 
 # Month name lookup for natural language date search
@@ -133,6 +133,49 @@ def delete_transaction(db: Session, transaction_id: int) -> bool:
     db.delete(db_item)
     db.commit()
     return True
+
+def create_notification(
+    db: Session,
+    title: str,
+    message: str,
+    notification_type: str = "warning",
+    category: Optional[str] = None,
+    threshold: Optional[str] = None,
+    month_year: Optional[str] = None
+) -> Notification:
+    if month_year is None:
+        month_year = datetime.now().strftime("%Y-%m")
+    notification = Notification(
+        title=title,
+        message=message,
+        type=notification_type,
+        category=category,
+        threshold=threshold,
+        month_year=month_year,
+        is_read=False,
+    )
+    db.add(notification)
+    db.commit()
+    db.refresh(notification)
+    return notification
+
+
+def list_notifications(db: Session, unread_only: bool = False, limit: int = 50) -> List[Notification]:
+    query = db.query(Notification).order_by(Notification.created_at.desc(), Notification.id.desc())
+    if unread_only:
+        query = query.filter(Notification.is_read.is_(False))
+    return query.limit(limit).all()
+
+
+def mark_notification_read(db: Session, notification_id: int) -> Optional[Notification]:
+    notification = db.query(Notification).filter(Notification.id == notification_id).first()
+    if not notification:
+        return None
+    notification.is_read = True
+    db.commit()
+    db.refresh(notification)
+    return notification
+
 
 def get_budget_by_month(db: Session, month_year: str) -> Optional[Budget]:
     return db.query(Budget).filter(Budget.month_year == month_year).first()

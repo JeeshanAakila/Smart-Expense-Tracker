@@ -11,14 +11,17 @@ from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.database import engine, Base, get_db, get_db_status
-from app.models import Transaction, Budget, AppSetting
+from app.models import Transaction, Budget, AppSetting, Notification
 from app.schemas import (
     TransactionCreate,
     TransactionUpdate,
     TransactionResponse,
     BudgetCreate,
     BudgetResponse,
-    FinancialSummary
+    FinancialSummary,
+    NotificationCreate,
+    NotificationResponse,
+    NotificationListResponse,
 )
 from app import crud
 from app.seed_data import seed_initial_data
@@ -132,9 +135,10 @@ def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
 
 @app.delete("/api/data")
 def reset_all_data(db: Session = Depends(get_db)):
-    """Permanently delete all transactions and budgets from the active database."""
+    """Permanently delete all transactions, budgets, and notifications from the active database."""
     transactions_deleted = db.query(Transaction).delete(synchronize_session=False)
     budgets_deleted = db.query(Budget).delete(synchronize_session=False)
+    notifications_deleted = db.query(Notification).delete(synchronize_session=False)
     seed_setting = db.query(AppSetting).filter(AppSetting.key == "initial_seed_completed").first()
     if seed_setting:
         seed_setting.value = "true"
@@ -142,10 +146,50 @@ def reset_all_data(db: Session = Depends(get_db)):
         db.add(AppSetting(key="initial_seed_completed", value="true"))
     db.commit()
     return {
-        "message": "All transaction and budget data was deleted.",
+        "message": "All transaction, budget, and notification data was deleted.",
         "transactions_deleted": transactions_deleted,
-        "budgets_deleted": budgets_deleted
+        "budgets_deleted": budgets_deleted,
+        "notifications_deleted": notifications_deleted
     }
+
+# ==================== NOTIFICATION MANAGEMENT ====================
+
+@app.get("/api/notifications", response_model=NotificationListResponse)
+def read_notifications(
+    unread_only: bool = Query(False, description="Return only unread notifications"),
+    limit: int = Query(50, ge=1, le=200),
+    db: Session = Depends(get_db)
+):
+    """List stored alerts / notifications for the application."""
+    notifications = crud.list_notifications(db, unread_only=unread_only, limit=limit)
+    unread_count = sum(1 for item in notifications if not item.is_read)
+    return {
+        "unread_count": unread_count,
+        "notifications": notifications
+    }
+
+
+@app.post("/api/notifications", response_model=NotificationResponse, status_code=201)
+def create_notification(notification: NotificationCreate, db: Session = Depends(get_db)):
+    """Create a notification record for UI alerts and reports."""
+    return crud.create_notification(
+        db,
+        title=notification.title,
+        message=notification.message,
+        notification_type=notification.type,
+        category=notification.category,
+        threshold=notification.threshold,
+        month_year=notification.month_year,
+    )
+
+
+@app.patch("/api/notifications/{notification_id}", response_model=NotificationResponse)
+def mark_notification_as_read(notification_id: int, db: Session = Depends(get_db)):
+    """Mark a notification as read."""
+    notification = crud.mark_notification_read(db, notification_id)
+    if not notification:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    return notification
 
 # ==================== BUDGET MANAGEMENT ====================
 

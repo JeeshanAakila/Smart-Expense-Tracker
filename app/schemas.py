@@ -64,6 +64,15 @@ class FinancialSummary(BaseModel):
     income_categories: List[CategorySummary]
     transaction_count: int
 
+class NotificationCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=150, description="Notification title")
+    message: str = Field(..., min_length=1, description="Notification text")
+    type: str = Field("warning", pattern="^(warning|exceeded|info)$", description="Notification type")
+    category: Optional[str] = Field(None, max_length=50)
+    threshold: Optional[str] = Field(None, max_length=20)
+    month_year: Optional[str] = Field(None, pattern=r"^\d{4}-(0[1-9]|1[0-2])$")
+    is_read: bool = False
+
 class NotificationResponse(BaseModel):
     id: int
     title: str
