@@ -12,6 +12,7 @@ const App = {
     searchQuery: '',
     sortBy: 'date',
     order: 'desc',
+    currency: 'LKR',
     categories: { income: [], expense: [] },
     editingTransactionId: null,
     deletingTransactionId: null,
@@ -89,6 +90,26 @@ const App = {
     if (monthPicker) monthPicker.value = this.state.currentMonth;
     if (budgetMonth) budgetMonth.value = this.state.currentMonth;
     if (txDateInput) txDateInput.value = new Date().toISOString().slice(0, 10);
+  },
+
+  changeMonth: function(offset) {
+    const [year, month] = this.state.currentMonth.split('-').map(Number);
+    const next = new Date(year, month - 1 + offset, 1);
+    this.state.currentMonth = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`;
+    const monthPicker = document.getElementById('selected-month');
+    const budgetMonth = document.getElementById('budget-month-input');
+    if (monthPicker) monthPicker.value = this.state.currentMonth;
+    if (budgetMonth && document.getElementById('budget-modal')?.classList.contains('active')) {
+      budgetMonth.value = this.state.currentMonth;
+    }
+    this.refreshAll();
+  },
+
+  renderCurrencyLabels: function() {
+    const txLabel = document.getElementById('tx-amount-label');
+    const budgetLabel = document.getElementById('budget-amount-label');
+    if (txLabel) txLabel.textContent = `Amount (${this.state.currency}) *`;
+    if (budgetLabel) budgetLabel.textContent = `Monthly Spending Limit (${this.state.currency}) *`;
   },
 
   // Database Connection Status
@@ -672,6 +693,12 @@ const App = {
       : [];
     this.state.unusualAlerts = Array.isArray(alerts) ? alerts.slice(0, 30) : [];
     this.state.unusualAlertsEnabled = !settings || settings.unusualAlertsEnabled !== false;
+    const savedCurrency = localStorage.getItem('smart-expense-currency') || 'LKR';
+    const validCurrencies = ['LKR', 'USD', 'EUR', 'GBP', 'INR', 'AUD', 'CAD'];
+    this.state.currency = validCurrencies.includes(savedCurrency) ? savedCurrency : 'LKR';
+    const currencySelect = document.getElementById('currency-select');
+    if (currencySelect) currencySelect.value = this.state.currency;
+    this.renderCurrencyLabels();
     this.renderNotificationBell();
     this.renderCategoryRules();
   },
@@ -730,6 +757,64 @@ const App = {
     if (toggle) toggle.checked = this.state.unusualAlertsEnabled;
     this.renderCategoryRules();
     this.openModal('settings-modal');
+  },
+
+  openResetConfirmation: function() {
+    const input = document.getElementById('reset-confirmation-input');
+    const button = document.getElementById('btn-confirm-reset');
+    if (input) input.value = '';
+    if (button) button.disabled = true;
+    this.openModal('reset-data-modal');
+  },
+
+  resetAllData: async function() {
+    const confirmation = document.getElementById('reset-confirmation-input');
+    if (!confirmation || confirmation.value.trim() !== 'RESET') {
+      this.showToast('Type RESET exactly to confirm deleting all data.', 'warning');
+      return;
+    }
+    const button = document.getElementById('btn-confirm-reset');
+    if (button) button.disabled = true;
+    try {
+      const response = await fetch('/api/data', { method: 'DELETE' });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        throw new Error(error.detail || 'Could not reset database records.');
+      }
+      [
+        'smart-expense-category-rules',
+        'smart-expense-unusual-alerts',
+        'smart-expense-settings',
+        'smart-expense-currency',
+        'theme'
+      ].forEach(key => localStorage.removeItem(key));
+      this.state.learnedRules = [];
+      this.state.unusualAlerts = [];
+      this.state.unusualAlertsEnabled = true;
+      this.state.currency = 'LKR';
+      this.renderCurrencyLabels();
+      this.state.historyTransactions = [];
+      this.state.historyLoaded = true;
+      this.state.currentMonth = new Date().toISOString().slice(0, 7);
+      const monthPicker = document.getElementById('selected-month');
+      if (monthPicker) monthPicker.value = this.state.currentMonth;
+      const currencySelect = document.getElementById('currency-select');
+      if (currencySelect) currencySelect.value = 'LKR';
+      const alertsToggle = document.getElementById('unusual-alerts-toggle');
+      if (alertsToggle) alertsToggle.checked = true;
+      const resetInput = document.getElementById('reset-confirmation-input');
+      if (resetInput) resetInput.value = '';
+      this.closeModal('reset-data-modal');
+      this.closeModal('settings-modal');
+      this.renderNotificationBell();
+      this.renderCategoryRules();
+      this.applyTheme('light');
+      await this.refreshAll();
+      this.showToast('All transactions, budgets, and saved browser settings were deleted.', 'success');
+    } catch (error) {
+      if (button) button.disabled = false;
+      this.showToast(error.message || 'Could not reset all data.', 'error');
+    }
   },
 
   toggleNotifications: function() {
@@ -935,6 +1020,27 @@ const App = {
       });
     }
 
+    const currencySelect = document.getElementById('currency-select');
+    if (currencySelect) {
+      currencySelect.addEventListener('change', () => {
+        this.state.currency = currencySelect.value;
+        if (this.persistLocalValue('smart-expense-currency', this.state.currency)) {
+          if (this.state.summary) this.renderKPIs(this.state.summary);
+          this.renderCurrencyLabels();
+          if (Charts.lastChartData) Charts.renderAll(Charts.lastChartData);
+          this.showToast(`Currency display changed to ${this.state.currency}. Values are not converted.`, 'info');
+        }
+      });
+    }
+
+    const resetInput = document.getElementById('reset-confirmation-input');
+    const resetButton = document.getElementById('btn-confirm-reset');
+    if (resetInput && resetButton) {
+      resetInput.addEventListener('input', () => {
+        resetButton.disabled = resetInput.value.trim() !== 'RESET';
+      });
+    }
+
     // Search input (debounce)
     let searchTimeout;
     const searchInput = document.getElementById('search-transactions');
@@ -1058,8 +1164,17 @@ const App = {
 
   // Utilities
   formatCurrency: function(num) {
-    if (num === null || num === undefined) return 'Rs. 0.00';
-    return 'Rs. ' + Number(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const value = Number(num ?? 0);
+    try {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: this.state.currency || 'LKR',
+        currencyDisplay: 'code'
+      }).format(value);
+    } catch (error) {
+      console.error('Could not format selected currency:', error);
+      return `${this.state.currency || 'LKR'} ${value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
   },
 
   formatMonthName: function(monthYear) {

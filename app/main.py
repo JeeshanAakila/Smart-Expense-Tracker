@@ -118,6 +118,18 @@ def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Transaction not found")
     return {"message": "Transaction successfully deleted", "id": transaction_id}
 
+@app.delete("/api/data")
+def reset_all_data(db: Session = Depends(get_db)):
+    """Permanently delete all transactions and budgets from the active database."""
+    transactions_deleted = db.query(Transaction).delete(synchronize_session=False)
+    budgets_deleted = db.query(Budget).delete(synchronize_session=False)
+    db.commit()
+    return {
+        "message": "All transaction and budget data was deleted.",
+        "transactions_deleted": transactions_deleted,
+        "budgets_deleted": budgets_deleted
+    }
+
 # ==================== BUDGET MANAGEMENT ====================
 
 @app.get("/api/budget", response_model=Optional[BudgetResponse])

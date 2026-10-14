@@ -413,6 +413,10 @@ body {
   box-shadow: 0 0 0 2.5px var(--primary-glow);
 }
 
+.month-nav-btn {
+  flex: 0 0 auto;
+}
+
 /* Theme Toggle */
 .theme-toggle-btn {
   background: var(--bg-surface);
@@ -1437,6 +1441,21 @@ body {
   font-weight: 600;
 }
 
+.settings-field-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--text-secondary);
+  font-size: 0.73rem;
+  font-weight: 500;
+}
+
+.settings-help-text {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--text-tertiary);
+  font-size: 0.66rem;
+}
+
 .settings-section > p,
 .rules-heading p {
   color: var(--text-tertiary);
@@ -1505,6 +1524,24 @@ body {
   line-height: 1.5;
 }
 
+.btn-danger-outline {
+  color: var(--expense);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+}
+
+.btn-danger-outline:hover {
+  background: var(--expense-bg);
+  border-color: var(--expense);
+}
+
+.reset-warning {
+  margin-bottom: 0.9rem;
+  color: var(--expense);
+  font-size: 0.77rem;
+  line-height: 1.55;
+}
+
 .print-report {
   display: none;
 }
@@ -1554,6 +1591,20 @@ body {
   padding: 0.8rem 1.15rem;
   border-top: 1px solid var(--border-subtle);
   background: var(--bg-inset);
+}
+
+.settings-modal-container > .modal-footer {
+  justify-content: space-between;
+}
+
+[data-theme="dark"] .btn-danger-outline {
+  border-color: var(--border-default);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
 }
 
 [data-theme="dark"] .modal-footer {

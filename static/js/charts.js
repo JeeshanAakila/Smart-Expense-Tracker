@@ -23,6 +23,10 @@ const Charts = {
     return document.documentElement.getAttribute('data-theme') === 'dark';
   },
 
+  currencyCode: function() {
+    return App.state.currency || 'LKR';
+  },
+
   // Dynamic Theme Layout Configuration
   getThemeLayout: function(title, extra = {}) {
     const dark = this.isDark();
@@ -72,6 +76,7 @@ const Charts = {
     }
 
     const dark = this.isDark();
+    const currency = this.currencyCode();
     const sliceBorder = dark ? '#111827' : '#ffffff';
 
     const data = [{
@@ -80,7 +85,7 @@ const Charts = {
       type: 'pie',
       hole: 0.62,
       textinfo: 'percent',
-      hovertemplate: '<b>%{label}</b><br>Rs. %{value:,.2f} (%{percent})<extra></extra>',
+      hovertemplate: `<b>%{label}</b><br>${currency} %{value:,.2f} (%{percent})<extra></extra>`,
       marker: {
         colors: this.colors.pieColors,
         line: { color: sliceBorder, width: 2.5 }
@@ -117,6 +122,7 @@ const Charts = {
     }
 
     const dark = this.isDark();
+    const currency = this.currencyCode();
     const gridColor = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
     const textColor = dark ? '#94a3b8' : '#64748b';
 
@@ -130,7 +136,7 @@ const Charts = {
       y: timelineData.income,
       name: 'Income',
       type: 'bar',
-      hovertemplate: '%{x}<br>Income: Rs. %{y:,.2f}<extra></extra>',
+      hovertemplate: `%{x}<br>Income: ${currency} %{y:,.2f}<extra></extra>`,
       marker: {
         color: this.colors.income,
         line: { color: 'rgba(5, 150, 105, 0.3)', width: 1 }
@@ -142,7 +148,7 @@ const Charts = {
       y: timelineData.expenses,
       name: 'Expenses',
       type: 'bar',
-      hovertemplate: '%{x}<br>Expenses: Rs. %{y:,.2f}<extra></extra>',
+      hovertemplate: `%{x}<br>Expenses: ${currency} %{y:,.2f}<extra></extra>`,
       marker: {
         color: this.colors.expense,
         line: { color: 'rgba(225, 29, 72, 0.3)', width: 1 }
@@ -162,7 +168,7 @@ const Charts = {
         tickfont: { size: 10, color: textColor },
         gridcolor: gridColor,
         zerolinecolor: gridColor,
-        tickprefix: 'Rs. '
+        tickprefix: `${currency} `
       },
       legend: {
         orientation: 'h',
@@ -187,6 +193,7 @@ const Charts = {
     }
 
     const dark = this.isDark();
+    const currency = this.currencyCode();
     const gridColor = dark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
     const textColor = dark ? '#94a3b8' : '#64748b';
 
@@ -195,7 +202,7 @@ const Charts = {
       y: trendData.income,
       name: 'Total Income',
       type: 'bar',
-      hovertemplate: '%{x}<br>Income: Rs. %{y:,.2f}<extra></extra>',
+      hovertemplate: `%{x}<br>Income: ${currency} %{y:,.2f}<extra></extra>`,
       marker: { color: this.colors.income }
     };
 
@@ -204,7 +211,7 @@ const Charts = {
       y: trendData.expenses,
       name: 'Total Expenses',
       type: 'bar',
-      hovertemplate: '%{x}<br>Expenses: Rs. %{y:,.2f}<extra></extra>',
+      hovertemplate: `%{x}<br>Expenses: ${currency} %{y:,.2f}<extra></extra>`,
       marker: { color: this.colors.expense }
     };
 
@@ -214,7 +221,7 @@ const Charts = {
       name: 'Monthly Budget',
       type: 'scatter',
       mode: 'lines+markers',
-      hovertemplate: '%{x}<br>Budget: Rs. %{y:,.2f}<extra></extra>',
+      hovertemplate: `%{x}<br>Budget: ${currency} %{y:,.2f}<extra></extra>`,
       line: { color: this.colors.budget, width: 3, dash: 'dot' },
       marker: { size: 7, color: this.colors.budget }
     };
@@ -229,7 +236,7 @@ const Charts = {
       yaxis: {
         tickfont: { size: 10, color: textColor },
         gridcolor: gridColor,
-        tickprefix: 'Rs. '
+        tickprefix: `${currency} `
       },
       legend: {
         orientation: 'h',
