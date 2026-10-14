@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
 from app.database import engine, Base, get_db, get_db_status
-from app.models import Transaction, Budget
+from app.models import Transaction, Budget, AppSetting
 from app.schemas import (
     TransactionCreate,
     TransactionUpdate,
@@ -26,9 +26,21 @@ from app.seed_data import seed_initial_data
 # Initialize database tables
 Base.metadata.create_all(bind=engine)
 
-# Seed sample data on startup if database is empty
-with next(get_db()) as db_session:
+def seed_database_once(db_session: Session):
+    seed_setting = db_session.query(AppSetting).filter(AppSetting.key == "initial_seed_completed").first()
+    if seed_setting:
+        return
     seed_initial_data(db_session)
+    db_session.add(AppSetting(key="initial_seed_completed", value="true"))
+    db_session.commit()
+
+# Seed sample data once; an explicit reset must stay empty after server restarts.
+db_generator = get_db()
+db_session = next(db_generator)
+try:
+    seed_database_once(db_session)
+finally:
+    db_generator.close()
 
 app = FastAPI(
     title="Smart Expense Tracker API",
@@ -123,6 +135,11 @@ def reset_all_data(db: Session = Depends(get_db)):
     """Permanently delete all transactions and budgets from the active database."""
     transactions_deleted = db.query(Transaction).delete(synchronize_session=False)
     budgets_deleted = db.query(Budget).delete(synchronize_session=False)
+    seed_setting = db.query(AppSetting).filter(AppSetting.key == "initial_seed_completed").first()
+    if seed_setting:
+        seed_setting.value = "true"
+    else:
+        db.add(AppSetting(key="initial_seed_completed", value="true"))
     db.commit()
     return {
         "message": "All transaction and budget data was deleted.",

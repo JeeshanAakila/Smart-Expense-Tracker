@@ -43,7 +43,7 @@ To develop a user-friendly web application that helps users manage income and ex
 - 🖨️ **Print-Friendly Monthly Report**: Generates an A4-ready report with monthly totals, category breakdown, and the full transaction list.
 
 New category rules, unusual-spending alerts, and alert preferences are stored in the browser's `localStorage`. Weekly summaries and print reports are calculated from the transaction history in the configured database.
-The Settings panel also supports display-currency selection (amounts are not converted) and resetting data. Resetting requires typing `RESET` and permanently deletes all transactions and budgets from the active database, along with the app's saved browser rules, alerts, currency, and theme preferences. The month arrows move the dashboard to the previous or next month.
+The Settings panel also supports display-currency selection (amounts are not converted) and resetting data. Resetting requires typing `RESET` and permanently deletes all transactions and budgets from the active database, along with the app's saved browser rules, alerts, currency, and theme preferences. The month arrows move the dashboard to the previous or next month. A small internal database setting records that the initial sample data has already been seeded or deliberately reset, so restarting the app will not repopulate an intentionally cleared database.
 
 ---
 

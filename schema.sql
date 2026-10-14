@@ -33,6 +33,12 @@ CREATE TABLE IF NOT EXISTS `budgets` (
     `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Internal startup state prevents sample data from being re-seeded after an intentional reset.
+CREATE TABLE IF NOT EXISTS `app_settings` (
+    `key` VARCHAR(100) PRIMARY KEY,
+    `value` TEXT NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Initial Sample Data for Quick Start
 INSERT INTO `budgets` (`month_year`, `total_budget`) 
 VALUES (DATE_FORMAT(CURRENT_DATE, '%Y-%m'), 2500.00)
