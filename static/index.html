@@ -15,7 +15,7 @@
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   
   <!-- Custom Design System Stylesheet -->
-  <link rel="stylesheet" href="/static/css/style.css?v=20261014-2">
+  <link rel="stylesheet" href="/static/css/style.css?v=20261014-3">
 </head>
 <body>
 
@@ -32,7 +32,10 @@
           </svg>
         </div>
         <div class="logo-text">
-          <h1>Smart Expense Tracker</h1>
+          <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+            <h1>Smart Expense Tracker</h1>
+            <span id="db-status-badge" class="db-badge"></span>
+          </div>
         </div>
       </div>
 
@@ -354,6 +357,30 @@
           </div>
         </div>
 
+        <!-- Table Pagination Controls -->
+        <div id="table-pagination" class="table-pagination" style="display: none;">
+          <div class="pagination-info" id="pagination-info">
+            <!-- Rendered via JS -->
+          </div>
+          <div class="pagination-controls">
+            <button id="btn-prev-page" class="btn btn-secondary btn-sm pagination-btn" onclick="App.prevPage()" title="Previous Page" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+              <span>Previous</span>
+            </button>
+            <div id="pagination-pages" class="pagination-pages">
+              <!-- Page number buttons rendered via JS -->
+            </div>
+            <button id="btn-next-page" class="btn btn-secondary btn-sm pagination-btn" onclick="App.nextPage()" title="Next Page" type="button">
+              <span>Next</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
+
       </section>
 
     </main>
@@ -550,8 +577,8 @@
   <div class="toast-container" id="toast-container" aria-live="polite"></div>
 
   <!-- Core Scripts -->
-  <script src="/static/js/charts.js?v=20261014-2"></script>
-  <script src="/static/js/app.js?v=20261014-2"></script>
+  <script src="/static/js/charts.js?v=20261014-3"></script>
+  <script src="/static/js/app.js?v=20261014-3"></script>
 
 </body>
 </html>
