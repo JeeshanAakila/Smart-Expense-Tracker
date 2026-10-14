@@ -80,7 +80,7 @@ def get_transactions(
     if search_query:
         search_pattern = f"%{search_query}%"
         # Build date string expression that works for both SQLite and MySQL
-        date_as_str = func.strftime('%Y-%m-%d', Transaction.date)
+        date_as_str = cast(Transaction.date, String)
         
         # Check if search query is a month name (e.g. "october", "oct")
         month_number = _parse_month_name(search_query.strip())

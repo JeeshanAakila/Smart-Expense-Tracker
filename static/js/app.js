@@ -13,6 +13,8 @@ const App = {
     sortBy: 'date',
     order: 'desc',
     dateFilter: '',
+    currentPage: 1,
+    pageSize: 10,
     currency: 'LKR',
     categories: { income: [], expense: [] },
     editingTransactionId: null,
@@ -97,6 +99,7 @@ const App = {
     const [year, month] = this.state.currentMonth.split('-').map(Number);
     const next = new Date(year, month - 1 + offset, 1);
     this.state.currentMonth = `${next.getFullYear()}-${String(next.getMonth() + 1).padStart(2, '0')}`;
+    this.state.currentPage = 1;
     const monthPicker = document.getElementById('selected-month');
     const budgetMonth = document.getElementById('budget-month-input');
     if (monthPicker) monthPicker.value = this.state.currentMonth;
@@ -465,22 +468,41 @@ const App = {
   },
 
   renderTransactionsTable: function(transactions) {
+    if (!transactions) transactions = this.state.transactions || [];
     const tbody = document.getElementById('transactions-table-body');
     const emptyState = document.getElementById('table-empty-state');
     const countEl = document.getElementById('transaction-record-count');
+    const paginationEl = document.getElementById('table-pagination');
 
-    if (countEl) countEl.textContent = `${transactions.length} record${transactions.length === 1 ? '' : 's'}`;
+    const totalCount = transactions.length;
+    if (countEl) countEl.textContent = `${totalCount} record${totalCount === 1 ? '' : 's'}`;
 
-    if (!transactions || transactions.length === 0) {
+    if (!transactions || totalCount === 0) {
       if (tbody) tbody.innerHTML = '';
       if (emptyState) emptyState.style.display = 'block';
+      if (paginationEl) paginationEl.style.display = 'none';
       return;
     }
 
     if (emptyState) emptyState.style.display = 'none';
 
+    // Pagination calculations (10 records per page)
+    const pageSize = this.state.pageSize || 10;
+    const totalPages = Math.ceil(totalCount / pageSize);
+
+    if (this.state.currentPage > totalPages) {
+      this.state.currentPage = totalPages;
+    }
+    if (this.state.currentPage < 1) {
+      this.state.currentPage = 1;
+    }
+
+    const startIndex = (this.state.currentPage - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, totalCount);
+    const pageRecords = transactions.slice(startIndex, endIndex);
+
     let html = '';
-    transactions.forEach(tx => {
+    pageRecords.forEach(tx => {
       const isIncome = tx.type === 'income';
       const formattedAmount = `${isIncome ? '+' : '-'}${this.formatCurrency(tx.amount)}`;
       const amountClass = isIncome ? 'amount-income' : 'amount-expense';
@@ -527,6 +549,74 @@ const App = {
     });
 
     if (tbody) tbody.innerHTML = html;
+
+    // Render pagination controls
+    this.renderPagination(totalCount, totalPages, startIndex + 1, endIndex);
+  },
+
+  renderPagination: function(totalCount, totalPages, fromRecord, toRecord) {
+    const paginationEl = document.getElementById('table-pagination');
+    if (!paginationEl) return;
+
+    if (totalCount <= (this.state.pageSize || 10)) {
+      paginationEl.style.display = 'none';
+      return;
+    }
+
+    paginationEl.style.display = 'flex';
+
+    const infoEl = document.getElementById('pagination-info');
+    if (infoEl) {
+      infoEl.innerHTML = `Showing <strong>${fromRecord}–${toRecord}</strong> of <strong>${totalCount}</strong> records (Page ${this.state.currentPage} of ${totalPages})`;
+    }
+
+    const prevBtn = document.getElementById('btn-prev-page');
+    const nextBtn = document.getElementById('btn-next-page');
+
+    if (prevBtn) {
+      prevBtn.disabled = this.state.currentPage <= 1;
+    }
+    if (nextBtn) {
+      nextBtn.disabled = this.state.currentPage >= totalPages;
+    }
+
+    const pagesContainer = document.getElementById('pagination-pages');
+    if (pagesContainer) {
+      let pagesHtml = '';
+      for (let p = 1; p <= totalPages; p++) {
+        if (totalPages <= 7 || p === 1 || p === totalPages || Math.abs(p - this.state.currentPage) <= 1) {
+          const isActive = p === this.state.currentPage ? 'active' : '';
+          pagesHtml += `<button class="page-num-btn ${isActive}" onclick="App.goToPage(${p})" aria-label="Page ${p}" type="button">${p}</button>`;
+        } else if (p === 2 && this.state.currentPage > 3) {
+          pagesHtml += `<span class="page-ellipsis">…</span>`;
+        } else if (p === totalPages - 1 && this.state.currentPage < totalPages - 2) {
+          pagesHtml += `<span class="page-ellipsis">…</span>`;
+        }
+      }
+      pagesContainer.innerHTML = pagesHtml;
+    }
+  },
+
+  goToPage: function(page) {
+    const pageSize = this.state.pageSize || 10;
+    const totalPages = Math.ceil(((this.state.transactions && this.state.transactions.length) || 0) / pageSize);
+    if (page < 1 || page > totalPages) return;
+    this.state.currentPage = page;
+    this.renderTransactionsTable(this.state.transactions);
+  },
+
+  prevPage: function() {
+    if (this.state.currentPage > 1) {
+      this.goToPage(this.state.currentPage - 1);
+    }
+  },
+
+  nextPage: function() {
+    const pageSize = this.state.pageSize || 10;
+    const totalPages = Math.ceil(((this.state.transactions && this.state.transactions.length) || 0) / pageSize);
+    if (this.state.currentPage < totalPages) {
+      this.goToPage(this.state.currentPage + 1);
+    }
   },
 
   // ==================== MODALS & FORM ACTIONS ====================
@@ -647,6 +737,7 @@ const App = {
     const dateInput = document.getElementById('filter-date');
     if (dateInput) dateInput.value = '';
     this.state.dateFilter = '';
+    this.state.currentPage = 1;
     const clearBtn = document.getElementById('btn-clear-date');
     if (clearBtn) clearBtn.style.display = 'none';
     this.loadTransactions();
@@ -1029,6 +1120,7 @@ const App = {
     if (monthPicker) {
       monthPicker.addEventListener('change', (e) => {
         this.state.currentMonth = e.target.value;
+        this.state.currentPage = 1;
         this.refreshAll();
       });
     }
@@ -1062,6 +1154,7 @@ const App = {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
           this.state.searchQuery = e.target.value;
+          this.state.currentPage = 1;
           this.loadTransactions();
         }, 250);
       });
@@ -1072,6 +1165,7 @@ const App = {
     if (dateFilterInput) {
       dateFilterInput.addEventListener('change', (e) => {
         this.state.dateFilter = e.target.value;
+        this.state.currentPage = 1;
         const clearBtn = document.getElementById('btn-clear-date');
         if (clearBtn) clearBtn.style.display = e.target.value ? 'inline-block' : 'none';
         this.loadTransactions();
@@ -1084,6 +1178,7 @@ const App = {
         document.querySelectorAll('.type-pill-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         this.state.typeFilter = btn.dataset.type;
+        this.state.currentPage = 1;
         this.loadTransactions();
       });
     });
@@ -1093,6 +1188,7 @@ const App = {
     if (catSelect) {
       catSelect.addEventListener('change', (e) => {
         this.state.categoryFilter = e.target.value;
+        this.state.currentPage = 1;
         this.loadTransactions();
       });
     }
@@ -1104,6 +1200,7 @@ const App = {
         const [field, order] = e.target.value.split('-');
         this.state.sortBy = field;
         this.state.order = order;
+        this.state.currentPage = 1;
         this.loadTransactions();
       });
     }
